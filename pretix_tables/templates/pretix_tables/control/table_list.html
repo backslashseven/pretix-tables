@@ -1,0 +1,70 @@
+{% extends "pretixcontrol/event/base.html" %}
+{% load i18n %}
+{% load money %}
+{% block title %}{% trans "Tables" %}{% endblock %}
+{% block content %}
+    <h1>{% trans "Tables" %}</h1>
+    <p>
+        {% blocktrans trimmed %}
+            Here you can define tables that your customers can book, either as a whole or seat by seat, in
+            addition to their normal ticket. Booking a whole table reserves all of its seats; once even a
+            single seat has been booked, the whole table can no longer be booked until it is freed up again.
+        {% endblocktrans %}
+    </p>
+    {% if tables|length == 0 %}
+        <div class="empty-collection">
+            <p>{% trans "You haven't created any tables yet." %}</p>
+            <a href="{% url "plugins:pretix_tables:create" organizer=request.organizer.slug event=request.event.slug %}"
+               class="btn btn-primary btn-lg"><i class="fa fa-plus"></i> {% trans "Create a new table" %}</a>
+        </div>
+    {% else %}
+        <p>
+            <a href="{% url "plugins:pretix_tables:create" organizer=request.organizer.slug event=request.event.slug %}"
+               class="btn btn-default"><i class="fa fa-plus"></i> {% trans "Create a new table" %}</a>
+        </p>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>{% trans "Name" %}</th>
+                    <th>{% trans "Seats" %}</th>
+                    <th>{% trans "Table price" %}</th>
+                    <th>{% trans "Seat price" %}</th>
+                    <th>{% trans "Active" %}</th>
+                    <th class="action-col-2"></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for table in tables %}
+                    <tr>
+                        <td>
+                            <strong>
+                                <a href="{% url "plugins:pretix_tables:edit" organizer=request.organizer.slug event=request.event.slug pk=table.pk %}">
+                                    {{ table.name }}
+                                </a>
+                            </strong>
+                        </td>
+                        <td>{{ table.seat_count }}</td>
+                        <td>{{ table.table_price|money:request.event.currency }}</td>
+                        <td>{{ table.seat_price|money:request.event.currency }}</td>
+                        <td>
+                            {% if table.active %}
+                                <span class="fa fa-check-circle text-success"></span>
+                            {% else %}
+                                <span class="fa fa-times-circle text-muted"></span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right flip">
+                            <a href="{% url "plugins:pretix_tables:edit" organizer=request.organizer.slug event=request.event.slug pk=table.pk %}"
+                               class="btn btn-default btn-sm"><i class="fa fa-wrench"></i></a>
+                            <a href="{% url "plugins:pretix_tables:delete" organizer=request.organizer.slug event=request.event.slug pk=table.pk %}"
+                               class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "pretixcontrol/pagination.html" %}
+    {% endif %}
+{% endblock %}

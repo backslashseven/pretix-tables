@@ -1,0 +1,33 @@
+{% extends "pretixcontrol/event/base.html" %}
+{% load i18n %}
+{% load bootstrap3 %}
+{% block title %}
+    {% if table %}
+        {% blocktrans with name=table.name %}Table: {{ name }}{% endblocktrans %}
+    {% else %}
+        {% trans "New table" %}
+    {% endif %}
+{% endblock %}
+{% block content %}
+    {% if table %}
+        <h1>{% blocktrans with name=table.name %}Table: {{ name }}{% endblocktrans %}</h1>
+    {% else %}
+        <h1>{% trans "New table" %}</h1>
+    {% endif %}
+    <form action="" method="post" class="form-horizontal">
+        {% csrf_token %}
+        {% bootstrap_form_errors form %}
+        {% bootstrap_field form.name layout="control" %}
+        {% bootstrap_field form.seat_count layout="control" %}
+        {% bootstrap_field form.table_price layout="control" %}
+        {% bootstrap_field form.seat_price layout="control" %}
+        {% bootstrap_field form.tax_rule layout="control" %}
+        {% bootstrap_field form.position layout="control" %}
+        {% bootstrap_field form.active layout="control" %}
+        <div class="form-group submit-group">
+            <a href="{% url "plugins:pretix_tables:index" organizer=request.organizer.slug event=request.event.slug %}"
+               class="btn btn-default btn-cancel">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-primary btn-save">{% trans "Save" %}</button>
+        </div>
+    </form>
+{% endblock %}
