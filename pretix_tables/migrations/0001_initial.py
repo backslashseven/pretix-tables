@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('pretixbase', '0310_question_valid_string_length_min'),
+        ('pretixbase', '0306_alter_eventmetaproperty_unique_together'),
     ]
 
     operations = [

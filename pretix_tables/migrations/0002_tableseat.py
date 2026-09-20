@@ -5,7 +5,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pretixbase', '0310_question_valid_string_length_min'),
+        ('pretixbase', '0306_alter_eventmetaproperty_unique_together'),
         ('pretix_tables', '0001_initial'),
     ]
 
