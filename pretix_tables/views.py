@@ -99,7 +99,7 @@ class TableDelete(EventPermissionRequiredMixin, CompatDeleteView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['sold_seat_count'] = self.get_object().sold_seat_count()
+        context['sold_seat_numbers'] = sorted(self.get_object().sold_seat_numbers())
         return context
 
     def get_success_url(self):

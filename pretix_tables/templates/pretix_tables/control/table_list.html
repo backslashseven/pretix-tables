@@ -6,9 +6,10 @@
     <h1>{% trans "Tables" %}</h1>
     <p>
         {% blocktrans trimmed %}
-            Here you can define tables that your customers can book, either as a whole or seat by seat, in
-            addition to their normal ticket. Booking a whole table reserves all of its seats; once even a
-            single seat has been booked, the whole table can no longer be booked until it is freed up again.
+            Here you can define tables with individually numbered seats. Each seat is a normal admission
+            ticket that appears on your event's regular product list, next to a whole-table product that
+            books every seat at once. Booking the whole table reserves all of its seats; once even a single
+            seat has been booked, the whole table can no longer be booked until it is freed up again.
         {% endblocktrans %}
     </p>
     {% if tables|length == 0 %}

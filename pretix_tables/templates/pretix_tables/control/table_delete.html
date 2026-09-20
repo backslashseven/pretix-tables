@@ -5,12 +5,11 @@
     <h1>{% trans "Delete table" %}</h1>
     <form action="" method="post" class="form-horizontal">
         {% csrf_token %}
-        {% if sold_seat_count %}
+        {% if sold_seat_numbers %}
             <p>
-                {% blocktrans trimmed with name=table.name count=sold_seat_count %}
-                    The table <strong>{{ name }}</strong> already has {{ count }} seat(s) sold or awaiting
-                    payment, so it cannot be deleted. It will be deactivated instead, so no more tables or
-                    seats can be booked.
+                {% blocktrans trimmed with name=table.name numbers=sold_seat_numbers|join:", " count=sold_seat_numbers|length %}
+                    The table <strong>{{ name }}</strong> already has orders against seat(s) {{ numbers }}, so it
+                    cannot be deleted. It will be deactivated instead, so no more tables or seats can be booked.
                 {% endblocktrans %}
             </p>
         {% else %}
@@ -24,7 +23,7 @@
             <a href="{% url "plugins:pretix_tables:index" organizer=request.organizer.slug event=request.event.slug %}"
                class="btn btn-default btn-cancel">{% trans "Cancel" %}</a>
             <button type="submit" class="btn btn-danger btn-save">
-                {% if sold_seat_count %}{% trans "Deactivate" %}{% else %}{% trans "Delete" %}{% endif %}
+                {% if sold_seat_numbers %}{% trans "Deactivate" %}{% else %}{% trans "Delete" %}{% endif %}
             </button>
         </div>
     </form>

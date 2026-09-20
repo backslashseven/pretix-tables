@@ -1,0 +1,30 @@
+{% load i18n %}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{% trans "Table seating" %}</h3>
+    </div>
+    <div class="panel-body">
+        {% for row in tables %}
+            <p><strong>{{ row.table.name }}</strong></p>
+            <ul class="list-inline">
+                {% for seat in row.seats %}
+                    <li>
+                        {% if seat.status == "this-order" %}
+                            <span class="label label-success">
+                                {% blocktrans with number=seat.number %}Seat {{ number }} (this order){% endblocktrans %}
+                            </span>
+                        {% elif seat.status == "taken" %}
+                            <span class="label label-default">
+                                {% blocktrans with number=seat.number %}Seat {{ number }} (taken){% endblocktrans %}
+                            </span>
+                        {% else %}
+                            <span class="label label-info">
+                                {% blocktrans with number=seat.number %}Seat {{ number }} (free){% endblocktrans %}
+                            </span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
+</div>

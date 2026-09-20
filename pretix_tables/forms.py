@@ -19,12 +19,12 @@ class TableForm(I18nModelForm):
     def clean_seat_count(self):
         seat_count = self.cleaned_data['seat_count']
         if self.instance.pk:
-            sold = self.instance.sold_seat_count()
-            if seat_count < sold:
+            sold = sorted(n for n in self.instance.sold_seat_numbers() if n > seat_count)
+            if sold:
                 raise forms.ValidationError(
                     _(
-                        'This table already has %(sold)s seat(s) sold or awaiting payment. You cannot '
-                        'reduce the number of seats below that.'
-                    ) % {'sold': sold}
+                        'Seat number(s) %(numbers)s already have orders against them, so you cannot '
+                        'shrink the table below that.'
+                    ) % {'numbers': ', '.join(str(n) for n in sold)}
                 )
         return seat_count
