@@ -2,9 +2,10 @@ from decimal import Decimal
 
 from django.db import models, transaction
 from django.db.models import ProtectedError
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, override
 from django_scopes import scope
 from i18nfield.fields import I18nCharField
+from i18nfield.strings import LazyI18nString
 
 from pretix.base.models import (
     CartPosition, Event, Item, ItemBundle, ItemVariation, Order, Quota, TaxRule,
@@ -55,6 +56,19 @@ class Table(LoggedModel):
     def __str__(self):
         return str(self.name)
 
+    def _i18n_name(self, template, **kwargs):
+        """
+        Renders `template` in every locale enabled for this event, so I18nCharField values
+        built from it (product/variation names) show correctly translated in the storefront
+        regardless of which locale happened to be active when this Table was last saved -
+        a plain str(_(template)) would freeze the name to just that one locale.
+        """
+        result = {}
+        for lang in self.event.settings.locales:
+            with override(lang):
+                result[lang] = str(_(template)).format(table=self.name, **kwargs)
+        return LazyI18nString(result)
+
     def sync_pretix_objects(self):
         """
         Creates/updates the pretix core Item/ItemVariation/Quota/ItemBundle objects that back
@@ -64,7 +78,7 @@ class Table(LoggedModel):
         """
         with scope(organizer=self.event.organizer):
             item = self.table_item or Item(event=self.event)
-            item.name = str(_("{table} (whole table)")).format(table=self.name)
+            item.name = self._i18n_name("{table} (whole table)")
             item.default_price = self.table_price
             item.tax_rule = self.tax_rule
             # The whole-table line is not itself an entry ticket - the admissions come from
@@ -82,7 +96,7 @@ class Table(LoggedModel):
             table_quota.items.set([item])
 
             seat_item = self.seat_item or Item(event=self.event)
-            seat_item.name = str(_("{table} (seat)")).format(table=self.name)
+            seat_item.name = self._i18n_name("{table} (seat)")
             seat_item.default_price = self.seat_price
             seat_item.tax_rule = self.tax_rule
             # Each seat is a normal admission ticket in its own right: attendee data is
@@ -110,7 +124,7 @@ class Table(LoggedModel):
 
             var = seat.variation if seat else ItemVariation(item=seat_item)
             var.item = seat_item
-            var.value = str(_("Seat {number}")).format(number=n)
+            var.value = self._i18n_name("Seat {number}", number=n)
             var.position = n - 1
             var.active = True
             var.save()
