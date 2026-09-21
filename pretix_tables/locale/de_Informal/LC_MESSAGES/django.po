@@ -1,0 +1,210 @@
+# pretix-tables translation file German (informal)
+# This file is distributed under the same license as the pretix-tables package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-21 14:44+0000\n"
+"PO-Revision-Date: 2026-09-21 00:00+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: German (informal) <LL@li.org>\n"
+"Language: de_Informal\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps.py:17
+msgid "pretix Tables"
+msgstr ""
+
+#: apps.py:19
+msgid "Table management for pretix events."
+msgstr ""
+
+#: forms.py:26
+#, python-format
+msgid ""
+"Seat number(s) %(numbers)s already have orders against them, so you cannot "
+"shrink the table below that."
+msgstr ""
+
+#: models.py:21
+msgid "Table name"
+msgstr ""
+
+#: models.py:24
+msgid "Number of seats"
+msgstr ""
+
+#: models.py:28
+msgid "Price for the whole table"
+msgstr ""
+
+#: models.py:32
+msgid "Price per seat"
+msgstr ""
+
+#: models.py:36
+msgid "Tax rule"
+msgstr ""
+
+#: models.py:40 templates/pretix_tables/control/table_list.html:34
+msgid "Active"
+msgstr ""
+
+#: models.py:44
+msgid "Position"
+msgstr ""
+
+#: models.py:67
+#, python-brace-format
+msgid "{table} (whole table)"
+msgstr "{table} (Ganzer Tisch)"
+
+#: models.py:79
+#, python-brace-format
+msgid "{table}: whole table"
+msgstr ""
+
+#: models.py:85
+#, python-brace-format
+msgid "{table} (seat)"
+msgstr "{table} (Einzelplatz)"
+
+#: models.py:113
+#, python-brace-format
+msgid "Seat {number}"
+msgstr ""
+
+#: models.py:119
+#, python-brace-format
+msgid "{table}: seat {number}"
+msgstr ""
+
+#: signals.py:18 templates/pretix_tables/control/table_list.html:4
+#: templates/pretix_tables/control/table_list.html:6
+msgid "Tables"
+msgstr ""
+
+#: templates/pretix_tables/control/order_info.html:4
+msgid "Table seating"
+msgstr ""
+
+#: templates/pretix_tables/control/order_info.html:14
+#, python-format
+msgid "Seat %(number)s (this order)"
+msgstr ""
+
+#: templates/pretix_tables/control/order_info.html:18
+#, python-format
+msgid "Seat %(number)s (taken)"
+msgstr ""
+
+#: templates/pretix_tables/control/order_info.html:22
+#, python-format
+msgid "Seat %(number)s (free)"
+msgstr ""
+
+#: templates/pretix_tables/control/table_delete.html:3
+#: templates/pretix_tables/control/table_delete.html:5
+msgid "Delete table"
+msgstr ""
+
+#: templates/pretix_tables/control/table_delete.html:10
+#, python-format
+msgid ""
+"The table <strong>%(name)s</strong> already has orders against seat(s) "
+"%(numbers)s, so it cannot be deleted. It will be deactivated instead, so no "
+"more tables or seats can be booked."
+msgstr ""
+
+#: templates/pretix_tables/control/table_delete.html:17
+#, python-format
+msgid "Are you sure you want to delete the table <strong>%(name)s</strong>?"
+msgstr ""
+
+#: templates/pretix_tables/control/table_delete.html:24
+#: templates/pretix_tables/control/table_edit.html:29
+msgid "Cancel"
+msgstr ""
+
+#: templates/pretix_tables/control/table_delete.html:26
+msgid "Deactivate"
+msgstr ""
+
+#: templates/pretix_tables/control/table_delete.html:26
+msgid "Delete"
+msgstr ""
+
+#: templates/pretix_tables/control/table_edit.html:6
+#: templates/pretix_tables/control/table_edit.html:13
+#, python-format
+msgid "Table: %(name)s"
+msgstr ""
+
+#: templates/pretix_tables/control/table_edit.html:8
+#: templates/pretix_tables/control/table_edit.html:15
+msgid "New table"
+msgstr ""
+
+#: templates/pretix_tables/control/table_edit.html:30
+msgid "Save"
+msgstr ""
+
+#: templates/pretix_tables/control/table_list.html:8
+msgid ""
+"Here you can define tables with individually numbered seats. Each seat is a "
+"normal admission ticket that appears on your event's regular product list, "
+"next to a whole-table product that books every seat at once. Booking the "
+"whole table reserves all of its seats; once even a single seat has been "
+"booked, the whole table can no longer be booked until it is freed up again."
+msgstr ""
+
+#: templates/pretix_tables/control/table_list.html:17
+msgid "You haven't created any tables yet."
+msgstr ""
+
+#: templates/pretix_tables/control/table_list.html:19
+#: templates/pretix_tables/control/table_list.html:24
+msgid "Create a new table"
+msgstr ""
+
+#: templates/pretix_tables/control/table_list.html:30
+msgid "Name"
+msgstr ""
+
+#: templates/pretix_tables/control/table_list.html:31
+msgid "Seats"
+msgstr ""
+
+#: templates/pretix_tables/control/table_list.html:32
+msgid "Table price"
+msgstr ""
+
+#: templates/pretix_tables/control/table_list.html:33
+msgid "Seat price"
+msgstr ""
+
+#: views.py:52
+msgid "The table has been created."
+msgstr ""
+
+#: views.py:56 views.py:87
+msgid "We could not save your changes. See below for details."
+msgstr ""
+
+#: views.py:83
+msgid "Your changes have been saved."
+msgstr ""
+
+#: views.py:118
+msgid ""
+"This table already has orders, so it could not be deleted. It has been "
+"deactivated instead so no more tables or seats can be booked."
+msgstr ""
+
+#: views.py:122
+msgid "The table has been deleted."
+msgstr ""
