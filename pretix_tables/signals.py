@@ -1,12 +1,15 @@
+from django.db import transaction
 from django.db.models import Q
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from pretix.base.models import ItemCategory
 from pretix.control.signals import nav_event, order_info
 
-from .models import Table
+from .models import Table, pin_tables_category
 
 
 @receiver(nav_event, dispatch_uid='pretix_tables_nav_event')
@@ -57,3 +60,15 @@ def order_info_receiver(sender, order, request, **kwargs):
         rows.append({'table': table, 'seats': seats})
 
     return render_to_string('pretix_tables/control/order_info.html', {'tables': rows})
+
+
+@receiver(post_save, sender=ItemCategory, dispatch_uid='pretix_tables_pin_category_last')
+def pin_tables_category_last(sender, instance, **kwargs):
+    """
+    Keeps the tables category (see _get_or_create_tables_category() in models.py) below every
+    other category in the shop. Fires on every ItemCategory save in every event - including the
+    organizer reordering their own categories, and our own creation/reordering of the tables
+    category itself - so it's deferred to transaction.on_commit() to see final positions rather
+    than a category mid-reorder.
+    """
+    transaction.on_commit(lambda: pin_tables_category(instance.event))

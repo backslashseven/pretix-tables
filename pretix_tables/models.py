@@ -1,16 +1,59 @@
 from decimal import Decimal
 
 from django.db import models, transaction
-from django.db.models import ProtectedError
+from django.db.models import Max, ProtectedError
 from django.utils.translation import gettext_lazy as _, override
 from django_scopes import scope
 from i18nfield.fields import I18nCharField
 from i18nfield.strings import LazyI18nString
 
 from pretix.base.models import (
-    CartPosition, Event, Item, ItemBundle, ItemVariation, Order, Quota, TaxRule,
+    CartPosition, Event, Item, ItemBundle, ItemCategory, ItemVariation, Order, Quota, TaxRule,
 )
 from pretix.base.models.base import LoggedModel
+
+
+def pin_tables_category(event):
+    """
+    Updates the tables category's position (if one has been created yet) to be strictly below
+    every other category in the event. Written as a plain UPDATE, not .save(), so that callers
+    - including the ItemCategory post_save signal in signals.py, which calls this whenever any
+    category in the event is saved or reordered - don't retrigger that same signal.
+    """
+    category_id = event.settings.get('pretix_tables_category_id', as_type=int)
+    if not category_id:
+        return
+    max_position = event.categories.exclude(pk=category_id).aggregate(Max('position'))['position__max']
+    if max_position is None:
+        return
+    ItemCategory.objects.filter(pk=category_id).exclude(position=max_position + 1).update(
+        position=max_position + 1
+    )
+
+
+def _get_or_create_tables_category(event):
+    """
+    Returns the single ItemCategory that all table/seat products are filed under, so they
+    render as one group in the shop instead of scattered among the organizer's own categories.
+    """
+    category_id = event.settings.get('pretix_tables_category_id', as_type=int)
+    if category_id:
+        try:
+            return event.categories.get(pk=category_id)
+        except ItemCategory.DoesNotExist:
+            pass
+
+    result = {}
+    for lang in event.settings.locales:
+        with override(lang):
+            result[lang] = str(_("Tables"))
+    category = ItemCategory.objects.create(event=event, name=LazyI18nString(result))
+    # The post_save signal fired by create() above can't pin this category's position yet -
+    # it reads pretix_tables_category_id from settings, which isn't set until the next line.
+    event.settings.pretix_tables_category_id = category.pk
+    pin_tables_category(event)
+    category.refresh_from_db(fields=['position'])
+    return category
 
 
 class Table(LoggedModel):
@@ -77,8 +120,11 @@ class Table(LoggedModel):
         called after any create/update of this Table.
         """
         with scope(organizer=self.event.organizer):
+            category = _get_or_create_tables_category(self.event)
+
             item = self.table_item or Item(event=self.event)
             item.name = self._i18n_name("{table} (whole table)")
+            item.category = category
             item.default_price = self.table_price
             item.tax_rule = self.tax_rule
             # The whole-table line is not itself an entry ticket - the admissions come from
@@ -97,6 +143,7 @@ class Table(LoggedModel):
 
             seat_item = self.seat_item or Item(event=self.event)
             seat_item.name = self._i18n_name("{table} (seat)")
+            seat_item.category = category
             seat_item.default_price = self.seat_price
             seat_item.tax_rule = self.tax_rule
             # Each seat is a normal admission ticket in its own right: attendee data is
