@@ -3,6 +3,8 @@ from decimal import Decimal
 import pytest
 from django_scopes import scopes_disabled
 
+from pretix.base.models import CartPosition
+from pretix.base.services.cart import CartError, CartManager
 from pretix.presale.productlist import item_group_by_category
 
 from pretix_tables.models import Table
@@ -23,6 +25,15 @@ def table(event):
     )
     t.sync_pretix_objects()
     return t
+
+
+@pytest.fixture
+@scopes_disabled()
+def cart_manager(event):
+    return CartManager(
+        event=event, cart_id='tables-test-cart',
+        sales_channel=event.organizer.sales_channels.get(identifier='web'),
+    )
 
 
 @pytest.mark.django_db
@@ -63,3 +74,40 @@ def test_tables_category_stays_pinned_after_reordering(event, category, table, d
     tables_category.refresh_from_db()
     assert tables_category.position > other.position
     assert tables_category.position > category.position
+
+
+@pytest.mark.django_db
+@scopes_disabled()
+def test_seat_item_is_bundle_only(table):
+    assert table.seat_item.require_bundling is True
+
+
+@pytest.mark.django_db
+@scopes_disabled()
+def test_seat_cannot_be_booked_on_its_own(table, cart_manager):
+    seat_variation = table.seat_item.variations.get(position=0)
+
+    with pytest.raises(CartError):
+        cart_manager.add_new_items([
+            {'item': table.seat_item.pk, 'variation': seat_variation.pk, 'count': 1},
+        ])
+
+    assert not CartPosition.objects.filter(event=table.event).exists()
+
+
+@pytest.mark.django_db
+@scopes_disabled()
+def test_booking_table_adds_one_seat_position_per_seat(table, cart_manager):
+    cart_manager.add_new_items([
+        {'item': table.table_item.pk, 'variation': None, 'count': 1},
+    ])
+    cart_manager.commit()
+
+    table_position = CartPosition.objects.get(event=table.event, item=table.table_item)
+    seat_positions = table_position.addons.filter(item=table.seat_item)
+
+    assert seat_positions.count() == table.seat_count
+    assert all(seat_positions.values_list('is_bundled', flat=True))
+    assert {p.variation_id for p in seat_positions} == set(
+        table.seat_item.variations.values_list('pk', flat=True)
+    )

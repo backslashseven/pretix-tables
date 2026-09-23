@@ -147,12 +147,16 @@ class Table(LoggedModel):
             seat_item.default_price = self.seat_price
             seat_item.tax_rule = self.tax_rule
             # Each seat is a normal admission ticket in its own right: attendee data is
-            # collected for it and it always gets its own ticket/PDF, whether bought on its
-            # own or bundled into a whole-table purchase (generate_tickets=True bypasses the
-            # event's "generate tickets for bundled products" setting, which defaults to off).
+            # collected for it and it always gets its own ticket/PDF once it's bundled into a
+            # whole-table purchase (generate_tickets=True bypasses the event's "generate
+            # tickets for bundled products" setting, which defaults to off).
             seat_item.admission = True
             seat_item.personalized = True
             seat_item.generate_tickets = True
+            # Seats are never sold on their own - only the whole-table item below is directly
+            # bookable, and pretix's own bundle mechanism then adds one seat position per
+            # ItemBundle row (built in _sync_seats()) straight into the cart alongside it.
+            seat_item.require_bundling = True
             seat_item.active = self.active
             seat_item.save()
 
