@@ -173,14 +173,18 @@ class Table(LoggedModel):
         for n in range(1, self.seat_count + 1):
             seat = existing.pop(n, None)
 
-            var = seat.variation if seat else ItemVariation(item=seat_item)
+            # A seat's variation/quota can be missing even for an existing TableSeat row - e.g.
+            # if the ItemVariation was deleted directly through pretix core rather than via
+            # TableSeat.remove(), which SET_NULLs the FK but leaves the TableSeat row in place -
+            # so check the *_id, not just whether `seat` exists, same as the bundle check below.
+            var = seat.variation if (seat and seat.variation_id) else ItemVariation(item=seat_item)
             var.item = seat_item
             var.value = self._i18n_name("Seat {number}", number=n)
             var.position = n - 1
             var.active = True
             var.save()
 
-            quota = seat.quota if seat else Quota(event=self.event)
+            quota = seat.quota if (seat and seat.quota_id) else Quota(event=self.event)
             quota.name = str(_("{table}: seat {number}")).format(table=self.name, number=n)
             quota.size = 1
             quota.save()
@@ -210,9 +214,19 @@ class Table(LoggedModel):
                 TableSeat.objects.create(
                     table=self, seat_number=n, variation=var, quota=quota, bundle=bundle,
                 )
-            elif seat.bundle_id != bundle.pk:
-                seat.bundle = bundle
-                seat.save(update_fields=['bundle'])
+            else:
+                update_fields = []
+                if seat.variation_id != var.pk:
+                    seat.variation = var
+                    update_fields.append('variation')
+                if seat.quota_id != quota.pk:
+                    seat.quota = quota
+                    update_fields.append('quota')
+                if seat.bundle_id != bundle.pk:
+                    seat.bundle = bundle
+                    update_fields.append('bundle')
+                if update_fields:
+                    seat.save(update_fields=update_fields)
 
         # Anything left in `existing` is a seat number beyond the new seat_count.
         for seat in existing.values():

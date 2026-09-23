@@ -111,3 +111,38 @@ def test_booking_table_adds_one_seat_position_per_seat(table, cart_manager):
     assert {p.variation_id for p in seat_positions} == set(
         table.seat_item.variations.values_list('pk', flat=True)
     )
+
+
+@pytest.mark.django_db
+@scopes_disabled()
+def test_sync_repairs_seat_whose_variation_was_deleted_elsewhere(table):
+    # Simulate an ItemVariation being deleted outside the plugin (e.g. through pretix core's
+    # own product admin) - this SET_NULLs TableSeat.variation/quota but leaves the TableSeat
+    # row itself in place, which is what crashed sync_pretix_objects() in production.
+    seat = table.table_seats.get(seat_number=1)
+    orphaned_variation_id = seat.variation_id
+    seat.variation.delete()
+    seat.quota.delete()
+    seat.refresh_from_db()
+    assert seat.variation_id is None
+    assert seat.quota_id is None
+
+    table.sync_pretix_objects()
+
+    seat.refresh_from_db()
+    assert seat.variation_id is not None
+    assert seat.variation_id != orphaned_variation_id
+    assert seat.quota_id is not None
+    assert seat.bundle.bundled_variation_id == seat.variation_id
+
+
+@pytest.mark.django_db
+@scopes_disabled()
+def test_sync_is_noop_for_already_synced_seats(table):
+    seat = table.table_seats.get(seat_number=1)
+    variation_id, quota_id, bundle_id = seat.variation_id, seat.quota_id, seat.bundle_id
+
+    table.sync_pretix_objects()
+
+    seat.refresh_from_db()
+    assert (seat.variation_id, seat.quota_id, seat.bundle_id) == (variation_id, quota_id, bundle_id)
